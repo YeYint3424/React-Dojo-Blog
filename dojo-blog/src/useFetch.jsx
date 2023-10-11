@@ -5,9 +5,9 @@ const useFetch = (url) => {
   const [isPending, setIsPending] = useState(true);
 
   useEffect(() => {
-
+    const abortCon = new AbortController
     setTimeout(() => {
-      fetch(url)
+      fetch(url, {singal : abortCon.signal})
         .then((res) => {
           if (!res.ok) {
             throw Error('could not fetch data for that resource'); // Response handling
@@ -18,8 +18,14 @@ const useFetch = (url) => {
           setData(data);
           setIsPending(false);
         })
-        .catch((err) => console.log(err.message)); // Server connect or not err handling
+        .catch((err) => {
+            if(err.name === 'AbortError'){
+                console.log('fetch clean');
+            }else
+            console.log(err.message)
+        }); // Server connect or not err handling
     }, 1000);
+    return ()=> abortCon
   }, [url]); // Use an empty dependency array if you want this effect to run once
 
   return { data, isPending };
